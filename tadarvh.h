@@ -1,7 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <conio2.h>
-
 struct tree {
     int simbolo, freq;
     struct tree *esq, *dir;
@@ -19,3 +15,6 @@ struct registro {
     char palavra[15], codigoHuffman[10];
 };
 typedef struct registro Registro;
+
+// Função que recebe uma frase e a separa em palavras para colocar na tabela de registros, ao mesmo tempo contando a frequência.
+void separaEmPalavras(char frase[]);
