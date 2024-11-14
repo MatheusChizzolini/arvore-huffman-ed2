@@ -29,6 +29,25 @@ Registro *novoRegistro(char palavra[15]) {
 	return registro;
 }
 
+Tree *criaFolha(Registro *registro) {
+    Tree *tree = (Tree *)malloc(sizeof(Tree));
+
+    tree->simbolo = registro->simbolo;
+    tree->freq = registro->freq;
+    tree->esq = tree->esq = NULL;
+
+    return tree;
+}
+
+Forest *criaNodo(Registro *registro) {
+    Forest *forest = (Forest *)malloc(sizeof(Forest));
+
+    forest->tree = criaFolha(registro);
+    forest->prox = NULL;
+
+    return forest;
+}
+
 void insereRegistro(Registro **tabela, char palavra[15]) {
 	Registro *registro, *aux;
 	
@@ -63,7 +82,7 @@ void exibeTabela(Registro *tabela) {
 // Função que recebe uma frase e a separa em palavras para colocar na tabela de registros, ao mesmo tempo contando a frequência.
 Registro *separaEmPalavras(char frase[128]) {
     Registro *tabela = NULL, *aux;
-    int i, j;
+    int i, j, simbolo = 1;
     char palavra[15];
 
     for (i = 0; i < strlen(frase); i++) {
@@ -78,11 +97,11 @@ Registro *separaEmPalavras(char frase[128]) {
                 palavra[j++] = frase[i];
             
             palavra[j] = '\0';
-            // printf("%s", palavra);
             aux = buscaPalavraNaTabela(tabela, palavra);
             if (aux == NULL) {
                 insereRegistro(&tabela, palavra);
-                // printf("%s\n", tabela->palavra);
+                aux = buscaPalavraNaTabela(tabela, palavra);
+                aux->simbolo = simbolo++;
             }
             else {
                 aux->freq++;
