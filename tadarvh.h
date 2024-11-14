@@ -48,6 +48,44 @@ Forest *criaNodo(Registro *registro) {
     return forest;
 }
 
+void insereOrdenadoNaFloresta(Forest **forest, Registro *tabela) {
+    Forest *nodo, *ant, *atual;
+    while (tabela != NULL) {
+        nodo = criaNodo(tabela);
+        if (*forest == NULL)
+            *forest = nodo;          
+        else {
+            if (nodo->tree->freq <= (*forest)->tree->freq) {
+                nodo->prox = *forest;
+                *forest = nodo;
+            }
+            else {
+                atual = ant = *forest;
+                while (atual->prox != NULL && nodo->tree->freq > atual->tree->freq) {
+                    ant = atual;
+                    atual = atual->prox;
+                }
+
+                if (nodo->tree->freq <= atual->tree->freq) {
+                    nodo->prox = atual;
+                    ant->prox = nodo;
+                }
+                else
+                    atual->prox = nodo;
+            }
+        }
+
+        tabela = tabela->prox;
+    }
+}
+
+void exibeFloresta(Forest *forest) {
+    while (forest != NULL) {
+        printf("%d | %d\n", forest->tree->freq, forest->tree->simbolo);
+        forest = forest->prox;
+    }
+}
+
 void insereRegistro(Registro **tabela, char palavra[15]) {
 	Registro *registro, *aux;
 	
@@ -74,7 +112,7 @@ Registro* buscaPalavraNaTabela(Registro *tabela, char palavra[15]) {
 
 void exibeTabela(Registro *tabela) {
     while (tabela != NULL) {
-        printf("PALAVRA: '%s'\tFREQUENCIA: %d\n", tabela->palavra, tabela->freq);
+        printf("SIMBOLO: %d\tPALAVRA: '%s'\tFREQUENCIA: %d\n", tabela->simbolo, tabela->palavra, tabela->freq);
         tabela = tabela->prox;
     }
 }
