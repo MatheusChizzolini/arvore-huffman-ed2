@@ -29,29 +29,54 @@ Registro *novoRegistro(char palavra[15]) {
 	return registro;
 }
 
-Tree *criaFolha(Registro *registro) {
+Tree *criaFolha(int simbolo, int freq) {
     Tree *tree = (Tree *)malloc(sizeof(Tree));
 
-    tree->simbolo = registro->simbolo;
-    tree->freq = registro->freq;
+    tree->simbolo = simbolo;
+    tree->freq = freq;
     tree->esq = tree->esq = NULL;
 
     return tree;
 }
 
-Forest *criaNodo(Registro *registro) {
+Forest *criaNodo(int simbolo, int freq) {
     Forest *forest = (Forest *)malloc(sizeof(Forest));
 
-    forest->tree = criaFolha(registro);
+    forest->tree = criaFolha(simbolo, freq);
     forest->prox = NULL;
 
     return forest;
 }
 
+void apagaNodo(Forest **cabeca, int simbolo) {
+    Forest *ant, *atual;
+
+    if (*cabeca != NULL) {
+        if ((*cabeca)->tree->simbolo == simbolo) {
+            atual = *cabeca;
+            *cabeca = (*cabeca)->prox;
+            free(atual);
+        }
+        else {
+            ant = atual = *cabeca;
+            while (atual->prox != NULL && atual->tree->simbolo != simbolo) {
+                ant = atual;
+                atual = atual->prox;
+            }
+
+            if (atual != NULL) {
+                ant->prox = atual->prox;
+                free(atual);
+            }
+        }
+    }
+}
+
 void insereOrdenadoNaFloresta(Forest **forest, Registro *tabela) {
     Forest *nodo, *ant, *atual;
+
     while (tabela != NULL) {
-        nodo = criaNodo(tabela);
+        nodo = criaNodo(tabela->simbolo, tabela->freq);
         if (*forest == NULL)
             *forest = nodo;          
         else {
@@ -117,7 +142,6 @@ void exibeTabela(Registro *tabela) {
     }
 }
 
-// Função que recebe uma frase e a separa em palavras para colocar na tabela de registros, ao mesmo tempo contando a frequência.
 Registro *separaEmPalavras(char frase[128]) {
     Registro *tabela = NULL, *aux;
     int i, j, simbolo = 1;
@@ -149,3 +173,7 @@ Registro *separaEmPalavras(char frase[128]) {
 
     return tabela;
 }
+
+void geraArvoreDeHuffman(Forest **cabeca) {}
+
+void exibeArvoreDeHuffman(Tree *raiz) {}
