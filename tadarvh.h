@@ -156,7 +156,7 @@ void exibeTabela(Registro *tabela) {
     }
 }
 
-void geraArvoreDeHuffman(Forest **cabeca) {
+Tree *geraArvoreDeHuffman(Forest **cabeca) {
     Forest *atual, *prox, *nodo;
 
     while ((*cabeca)->prox != NULL) {
@@ -173,6 +173,23 @@ void geraArvoreDeHuffman(Forest **cabeca) {
         free(atual);
         free(prox);
     }
+
+    return (*cabeca)->tree;
 }
 
-void exibeArvoreDeHuffman(Tree *raiz) {}
+void exibeArvoreDeHuffman(Tree *raiz, int n) {
+    int i;
+
+    if (raiz != NULL) {
+        exibeArvoreDeHuffman(raiz->esq, n + 1);
+
+        for (i = 0; i < 5 * n; i++)
+            printf(" ");
+        
+        printf("(%d, %d)\n", raiz->simbolo, raiz->freq);
+
+        exibeArvoreDeHuffman(raiz->dir, n + 1);
+    }
+}
+
+void geraCodigoDeHuffman(Registro **tabela, Tree *tree) {}
