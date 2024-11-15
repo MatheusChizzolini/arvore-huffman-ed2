@@ -10,10 +10,12 @@ int main(void) {
 
     tabela = separaEmPalavras(frase);
     exibeTabela(tabela);
-    printf("\n");
     
-    insereOrdenadoNaFloresta(&forest, tabela);
+	geraFloresta(&forest, tabela);
     exibeFloresta(forest);
     
+    geraArvoreDeHuffman(&forest);
+    printf("%d", forest->tree->freq);
+
     return 0;
 }

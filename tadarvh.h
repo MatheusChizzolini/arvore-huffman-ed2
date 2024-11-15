@@ -34,7 +34,7 @@ Tree *criaFolha(int simbolo, int freq) {
 
     tree->simbolo = simbolo;
     tree->freq = freq;
-    tree->esq = tree->esq = NULL;
+    tree->esq = tree->dir = NULL;
 
     return tree;
 }
@@ -48,57 +48,39 @@ Forest *criaNodo(int simbolo, int freq) {
     return forest;
 }
 
-void apagaNodo(Forest **cabeca, int simbolo) {
+void insereOrdenado(Forest **cabeca, Forest *nodo) {
     Forest *ant, *atual;
 
-    if (*cabeca != NULL) {
-        if ((*cabeca)->tree->simbolo == simbolo) {
-            atual = *cabeca;
-            *cabeca = (*cabeca)->prox;
-            free(atual);
+    if (*cabeca == NULL)
+        *cabeca = nodo;          
+    else {
+        if (nodo->tree->freq <= (*cabeca)->tree->freq) {
+            nodo->prox = *cabeca;
+            *cabeca = nodo;
         }
         else {
             ant = atual = *cabeca;
-            while (atual->prox != NULL && atual->tree->simbolo != simbolo) {
+            while (atual->prox != NULL && nodo->tree->freq > atual->tree->freq) {
                 ant = atual;
                 atual = atual->prox;
             }
 
-            if (atual != NULL) {
-                ant->prox = atual->prox;
-                free(atual);
+            if (nodo->tree->freq <= atual->tree->freq) {
+                nodo->prox = atual;
+                ant->prox = nodo;
             }
+            else
+                atual->prox = nodo;
         }
     }
 }
 
-void insereOrdenadoNaFloresta(Forest **forest, Registro *tabela) {
-    Forest *nodo, *ant, *atual;
+void geraFloresta(Forest **cabeca, Registro *tabela) {
+    Forest *nodo;
 
     while (tabela != NULL) {
         nodo = criaNodo(tabela->simbolo, tabela->freq);
-        if (*forest == NULL)
-            *forest = nodo;          
-        else {
-            if (nodo->tree->freq <= (*forest)->tree->freq) {
-                nodo->prox = *forest;
-                *forest = nodo;
-            }
-            else {
-                atual = ant = *forest;
-                while (atual->prox != NULL && nodo->tree->freq > atual->tree->freq) {
-                    ant = atual;
-                    atual = atual->prox;
-                }
-
-                if (nodo->tree->freq <= atual->tree->freq) {
-                    nodo->prox = atual;
-                    ant->prox = nodo;
-                }
-                else
-                    atual->prox = nodo;
-            }
-        }
+        insereOrdenado(&*cabeca, nodo);
 
         tabela = tabela->prox;
     }
@@ -135,13 +117,6 @@ Registro* buscaPalavraNaTabela(Registro *tabela, char palavra[15]) {
     return atual;
 }
 
-void exibeTabela(Registro *tabela) {
-    while (tabela != NULL) {
-        printf("SIMBOLO: %d\tPALAVRA: '%s'\tFREQUENCIA: %d\n", tabela->simbolo, tabela->palavra, tabela->freq);
-        tabela = tabela->prox;
-    }
-}
-
 Registro *separaEmPalavras(char frase[128]) {
     Registro *tabela = NULL, *aux;
     int i, j, simbolo = 1;
@@ -174,6 +149,30 @@ Registro *separaEmPalavras(char frase[128]) {
     return tabela;
 }
 
-void geraArvoreDeHuffman(Forest **cabeca) {}
+void exibeTabela(Registro *tabela) {
+    while (tabela != NULL) {
+        printf("SIMBOLO: %d\tPALAVRA: '%s'\tFREQUENCIA: %d\t HUFFMAN: '%s'\n", tabela->simbolo, tabela->palavra, tabela->freq, tabela->codigoHuffman);
+        tabela = tabela->prox;
+    }
+}
+
+void geraArvoreDeHuffman(Forest **cabeca) {
+    Forest *atual, *prox, *nodo;
+
+    while ((*cabeca)->prox != NULL) {
+        atual = *cabeca;
+        prox = atual->prox;
+        
+        nodo = criaNodo(-1, atual->tree->freq + prox->tree->freq);
+        nodo->tree->esq = atual->tree;
+        nodo->tree->dir = prox->tree;
+
+        insereOrdenado(&*cabeca, nodo);
+
+        *cabeca = (*cabeca)->prox->prox;
+        free(atual);
+        free(prox);
+    }
+}
 
 void exibeArvoreDeHuffman(Tree *raiz) {}
