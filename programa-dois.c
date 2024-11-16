@@ -5,12 +5,12 @@
 
 int main(void) {
     Tree *tree = NULL;
+    char fraseDecodificada[512] = "";
 
-    geraArvorePeloDAT(&tree);
-//    exibeArvoreDeHuffman(tree, 0);
+    recuperaArvorePeloBinario(&tree);
     
-//    decodifica();
+	decodificaFrase(tree, fraseDecodificada);
+	printf("%s", fraseDecodificada);
 
     return 0;
 }
-

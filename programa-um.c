@@ -4,25 +4,24 @@
 #include "tadarvh.h"
 
 int main(void) {
-    Registro *tabela = NULL;
-    Forest *forest = NULL;
     Tree *tree = NULL;
-    char frase[128] = "amar e sonhar sonhar e viver viver e curtir curtir e amar", huffman[8] = "";
-	char fraseACodificar[32] = "curtir e amar e viver sonhar", fraseCodificada[512] = "";
+	Forest *forest = NULL;
+	Registro *tabela = NULL;
+    char frase[256] = "amar e sonhar sonhar e viver viver e curtir curtir e amar", huffman[8] = "";
+	char fraseACodificar[256] = "curtir e amar e viver sonhar", fraseCodificada[512] = "";
 
-	// Criacao da tabela de registro, da floresta e da arvore
+	// Criação da tabela de registros, da floresta e da árvore
     tabela = separaEmPalavras(frase);
 	geraFloresta(&forest, tabela);
     tree = geraArvoreDeHuffman(&forest);
-	geraCodigoDeHuffman(&tabela, tree, huffman, 0);
-	gravaTabelaEmDAT(tabela);
+	geraCodigosHuffman(&tabela, tree, huffman, 0);
+	gravaTabelaEmBinario(tabela);
 	codificaFrase(tabela, fraseACodificar, fraseCodificada);
-	gravaCodigoEmDAT(fraseCodificada);
+	gravaFraseCodificadaEmBinario(fraseCodificada);
 	
-	// Exibicao
+	// Exibição da tabela de registros e da árvore
 	exibeTabela(tabela);
 	exibeArvoreDeHuffman(tree, 0);
 	
     return 0;
 }
-
