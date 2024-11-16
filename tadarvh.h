@@ -17,6 +17,24 @@ struct registro {
 };
 typedef struct registro Registro;
 
+struct bits {
+    unsigned char b7 : 1;
+    unsigned char b6 : 1;
+    unsigned char b5 : 1;
+    unsigned char b4 : 1;
+    unsigned char b3 : 1;
+    unsigned char b2 : 1;
+    unsigned char b1 : 1;
+    unsigned char b0 : 1;
+};
+typedef struct bits Bits;
+
+union byte {
+    struct bits bit;
+    unsigned char codigo;
+};
+typedef union byte Byte;
+
 Registro *novoRegistro(char palavra[15]) {
     Registro *registro = (Registro *)malloc(sizeof(Registro));
     
@@ -86,6 +104,7 @@ void geraFloresta(Forest **cabeca, Registro *tabela) {
     }
 }
 
+// Apagar depois
 void exibeFloresta(Forest *forest) {
     while (forest != NULL) {
         printf("%d | %d\n", forest->tree->freq, forest->tree->simbolo);
@@ -230,8 +249,8 @@ void geraCodigoDeHuffman(Registro **tabela, Tree *tree, char huffman[], int i) {
     }
 }
 
-void passaTabelaParaDAT(Registro *tabela) {
-    FILE *arq = fopen("tabela", "wb");
+void gravaTabelaEmDAT(Registro *tabela) {
+    FILE *arq = fopen("tabela.dat", "wb");
 
     if (arq != NULL) {
         while (tabela != NULL) {
@@ -244,15 +263,23 @@ void passaTabelaParaDAT(Registro *tabela) {
 }
 
 void exibeDAT(void) {
-    Registro *registro;
-    FILE *arq = fopen("tabela", "rb");
+    Byte byte;
+    FILE *arq = fopen("codigo.dat", "rb");
 
+    printf("\n\n\n");
     if (arq != NULL) {
-        fread(registro, sizeof(Registro), 1, arq);
+        fread(&byte.codigo, sizeof(Byte), 1, arq);
         while (!feof(arq)) {
-            printf("%d, %s, %d, %s\n", registro->simbolo, registro->palavra, registro->freq, registro->codigoHuffman);
+            printf("%d", byte.bit.b0);
+            printf("%d", byte.bit.b1);
+            printf("%d", byte.bit.b2);
+            printf("%d", byte.bit.b3);
+            printf("%d", byte.bit.b4);
+            printf("%d", byte.bit.b5);
+            printf("%d", byte.bit.b6);
+            printf("%d", byte.bit.b7);
 
-            fread(registro, sizeof(Registro), 1, arq);
+            fread(&byte.codigo, sizeof(Byte), 1, arq);
         }
     }
 
@@ -261,7 +288,7 @@ void exibeDAT(void) {
 
 void codificaFrase(Registro *tabela, char frase[], char codigo[]) {
     Registro *aux;
-    int i, j;
+    int i, j, mod;
     char palavra[15];
 
     for (i = 0; i < strlen(frase); i++) {
@@ -276,10 +303,41 @@ void codificaFrase(Registro *tabela, char frase[], char codigo[]) {
                 palavra[j++] = frase[i];
             
             palavra[j] = '\0';
-
             aux = buscaPalavra(tabela, palavra);
             if (aux != NULL)
                 strcat(codigo, aux->codigoHuffman);
         }
     }
+
+    // Preenchendo o resto do codigo com 0 para completar o byte
+    mod = strlen(codigo) % 8;
+    i = 0;
+    if (mod > 0) {
+        while (i < (8 - mod)) {
+            strcat(codigo, "0");
+            i++;
+        }
+    }
+}
+
+void gravaCodigoEmDAT(char codigo[]) {
+    int i = 0;
+    Byte byte;
+    FILE *arq = fopen("codigo.dat", "wb");
+
+    while (i < strlen(codigo) - 1) {
+        byte.bit.b0 = codigo[i];
+        byte.bit.b1 = codigo[i + 1];
+        byte.bit.b2 = codigo[i + 2];
+        byte.bit.b3 = codigo[i + 3];
+        byte.bit.b4 = codigo[i + 4];
+        byte.bit.b5 = codigo[i + 5];
+        byte.bit.b6 = codigo[i + 6];
+        byte.bit.b7 = codigo[i + 7];
+
+        i += 8;
+        fwrite(&byte.codigo, sizeof(char), 1, arq);
+    }
+    
+    fclose(arq);
 }
