@@ -268,7 +268,7 @@ void exibeDAT(void) {
 
     printf("\n\n\n");
     if (arq != NULL) {
-        fread(&byte.codigo, sizeof(Byte), 1, arq);
+        fread(&byte, sizeof(char), 1, arq);
         while (!feof(arq)) {
             printf("%d", byte.bit.b0);
             printf("%d", byte.bit.b1);
@@ -279,7 +279,7 @@ void exibeDAT(void) {
             printf("%d", byte.bit.b6);
             printf("%d", byte.bit.b7);
 
-            fread(&byte.codigo, sizeof(Byte), 1, arq);
+            fread(&byte, sizeof(char), 1, arq);
         }
     }
 
@@ -325,7 +325,7 @@ void gravaCodigoEmDAT(char codigo[]) {
     Byte byte;
     FILE *arq = fopen("codigo.dat", "wb");
 
-    while (i < strlen(codigo) - 1) {
+    while (i < strlen(codigo)) {
         byte.bit.b0 = codigo[i];
         byte.bit.b1 = codigo[i + 1];
         byte.bit.b2 = codigo[i + 2];
@@ -340,4 +340,78 @@ void gravaCodigoEmDAT(char codigo[]) {
     }
     
     fclose(arq);
+}
+
+void geraArvorePeloDAT(Tree **raiz) {
+    int i;
+    Tree *atual, *nodo;
+    Registro *registro;
+    FILE *arq = fopen("tabela.dat", "rb");
+
+    if (arq != NULL) {
+        if (*raiz == NULL)
+            *raiz = criaFolha(-1, -1);
+
+        fread(registro, sizeof(Registro), 1, arq);
+        while (!feof(arq)) {
+            atual = *raiz;
+            for (i = 0; i < strlen(registro->codigoHuffman); i++) {
+                if (registro->codigoHuffman[i] == '0') {
+                    if (atual->esq == NULL) {
+                        nodo = criaFolha(-1, -1);
+                        atual->esq = nodo;
+                    }
+
+                    atual = atual->esq;
+                }
+                else {
+                    if (registro->codigoHuffman[i] == '1') {
+                        if (atual->dir == NULL) {
+                            nodo = criaFolha(-1, -1);
+                            atual->dir = nodo;
+                        }
+
+                        atual = atual->dir;
+                    }
+                }
+
+                if (i == strlen(registro->codigoHuffman) - 1) {
+                    atual->simbolo = registro->simbolo;
+                    atual->freq = registro->freq;
+                }
+            }
+            
+            fread(registro, sizeof(Registro), 1, arq);
+        }
+    }
+
+    fclose(arq);
+}
+
+void decodifica(void) {
+    char fraseCodificada[128] = "";
+    Byte byte;
+    FILE *arq = fopen("codigo.dat", "rb");
+    int i = 0;
+
+    if (arq != NULL) {
+        fread(&byte.codigo, sizeof(char), 1, arq);
+        while (!feof(arq)) {
+            fraseCodificada[i] = byte.bit.b0;
+            fraseCodificada[i+1] = byte.bit.b1;
+            fraseCodificada[i+2] = byte.bit.b2;
+            fraseCodificada[i+3] = byte.bit.b3;
+            fraseCodificada[i+4] = byte.bit.b4;
+            fraseCodificada[i+5] = byte.bit.b5;
+            fraseCodificada[i+6] = byte.bit.b6;
+            fraseCodificada[i+7] = byte.bit.b7;
+
+            fread(&byte.codigo, sizeof(char), 1, arq);
+            i = i+ 8;
+        }
+        fraseCodificada[i] = '\0';
+    }
+
+    fclose(arq);
+    printf("%s", fraseCodificada);
 }
