@@ -109,9 +109,19 @@ void insereRegistro(Registro **tabela, char palavra[15]) {
 	}
 }
 
-Registro* buscaPalavraNaTabela(Registro *tabela, char palavra[15]) {
+Registro* buscaPalavra(Registro *tabela, char palavra[15]) {
     Registro *atual = tabela;
+
     while (atual != NULL && strcmp(atual->palavra, palavra) != 0)
+        atual = atual->prox;
+
+    return atual;
+}
+
+Registro* buscaSimbolo(Registro *tabela, int simbolo) {
+    Registro *atual = tabela;
+
+    while (atual != NULL && atual->simbolo != simbolo)
         atual = atual->prox;
 
     return atual;
@@ -134,10 +144,10 @@ Registro *separaEmPalavras(char frase[128]) {
                 palavra[j++] = frase[i];
             
             palavra[j] = '\0';
-            aux = buscaPalavraNaTabela(tabela, palavra);
+            aux = buscaPalavra(tabela, palavra);
             if (aux == NULL) {
                 insereRegistro(&tabela, palavra);
-                aux = buscaPalavraNaTabela(tabela, palavra);
+                aux = buscaPalavra(tabela, palavra);
                 aux->simbolo = simbolo++;
             }
             else {
@@ -150,10 +160,22 @@ Registro *separaEmPalavras(char frase[128]) {
 }
 
 void exibeTabela(Registro *tabela) {
+    int y = 2;
+    gotoxy(1, 1); printf("SIMBOLO");
+    gotoxy(14, 1); printf("PALAVRA");
+    gotoxy(27, 1); printf("FREQUENCIA");
+    gotoxy(40, 1); printf("HUFFMAN");
+
     while (tabela != NULL) {
-        printf("SIMBOLO: %d\tPALAVRA: '%s'\tFREQUENCIA: %d\t HUFFMAN: '%s'\n", tabela->simbolo, tabela->palavra, tabela->freq, tabela->codigoHuffman);
+        gotoxy(4, y); printf("%d", tabela->simbolo);
+        gotoxy(14, y); printf("'%s'", tabela->palavra);
+        gotoxy(31, y); printf("%d", tabela->freq);
+        gotoxy(41, y); printf("%s", tabela->codigoHuffman);
+        y++;
+
         tabela = tabela->prox;
     }
+    printf("\n\n");
 }
 
 Tree *geraArvoreDeHuffman(Forest **cabeca) {
@@ -182,14 +204,82 @@ void exibeArvoreDeHuffman(Tree *raiz, int n) {
 
     if (raiz != NULL) {
         exibeArvoreDeHuffman(raiz->esq, n + 1);
-
         for (i = 0; i < 5 * n; i++)
             printf(" ");
         
         printf("(%d, %d)\n", raiz->simbolo, raiz->freq);
-
         exibeArvoreDeHuffman(raiz->dir, n + 1);
     }
 }
 
-void geraCodigoDeHuffman(Registro **tabela, Tree *tree) {}
+void geraCodigoDeHuffman(Registro **tabela, Tree *tree, char huffman[], int i) {
+    Registro *aux;
+
+    if (tree != NULL) {
+        if (tree->esq == NULL && tree->dir == NULL) {
+            huffman[i] = '\0';
+            aux = buscaSimbolo(*tabela, tree->simbolo);
+            strcpy(aux->codigoHuffman, huffman);
+        }
+        else {
+            huffman[i] = '0';
+            geraCodigoDeHuffman(&*tabela, tree->esq, huffman, i + 1);
+            huffman[i] = '1';
+            geraCodigoDeHuffman(&*tabela, tree->dir, huffman, i + 1);
+        }
+    }
+}
+
+void passaTabelaParaDAT(Registro *tabela) {
+    FILE *arq = fopen("tabela", "wb");
+
+    if (arq != NULL) {
+        while (tabela != NULL) {
+            fwrite(tabela, sizeof(Registro), 1, arq);
+            tabela = tabela->prox;
+        }
+    }
+    
+    fclose(arq);
+}
+
+void exibeDAT(void) {
+    Registro *registro;
+    FILE *arq = fopen("tabela", "rb");
+
+    if (arq != NULL) {
+        fread(registro, sizeof(Registro), 1, arq);
+        while (!feof(arq)) {
+            printf("%d, %s, %d, %s\n", registro->simbolo, registro->palavra, registro->freq, registro->codigoHuffman);
+
+            fread(registro, sizeof(Registro), 1, arq);
+        }
+    }
+
+    fclose(arq);
+}
+
+void codificaFrase(Registro *tabela, char frase[], char codigo[]) {
+    Registro *aux;
+    int i, j;
+    char palavra[15];
+
+    for (i = 0; i < strlen(frase); i++) {
+        j = 0;
+        if (frase[j] != '\0') {
+            if (frase[i] != ' ') {
+                palavra[j++] = frase[i];
+                while (i < strlen(frase) && frase[i + 1] != ' ')
+                    palavra[j++] = frase[++i];
+            }
+            else
+                palavra[j++] = frase[i];
+            
+            palavra[j] = '\0';
+
+            aux = buscaPalavra(tabela, palavra);
+            if (aux != NULL)
+                strcat(codigo, aux->codigoHuffman);
+        }
+    }
+}
