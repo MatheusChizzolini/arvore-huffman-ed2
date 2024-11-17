@@ -10,7 +10,8 @@ int main(void) {
     recuperaArvorePeloBinario(&tree);
     
 	decodificaFrase(tree, fraseDecodificada);
-	printf("%s", fraseDecodificada);
+	printf("\nFrase decodificada:\n%s\n", fraseDecodificada);
 
     return 0;
 }
+

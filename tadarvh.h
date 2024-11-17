@@ -12,7 +12,7 @@ typedef struct forest Forest;
 
 struct registro {
     int freq, simbolo;
-    char palavra[15], codigoHuffman[10];
+    char palavra[16], codigoHuffman[8];
     struct registro *prox;
 };
 typedef struct registro Registro;
@@ -35,7 +35,7 @@ union byte {
 };
 typedef union byte Byte;
 
-Registro *criaRegistro(char palavra[15]) {
+Registro *criaRegistro(char palavra[]) {
     Registro *registro = (Registro *)malloc(sizeof(Registro));
     
     registro->freq = 1;
@@ -104,7 +104,7 @@ void geraFloresta(Forest **cabeca, Registro *tabela) {
     }
 }
 
-void insereRegistro(Registro **tabela, char palavra[15]) {
+void insereRegistro(Registro **tabela, char palavra[]) {
 	Registro *registro, *aux;
 	
 	registro = criaRegistro(palavra);
@@ -120,7 +120,7 @@ void insereRegistro(Registro **tabela, char palavra[15]) {
 	}
 }
 
-Registro* buscaPalavra(Registro *tabela, char palavra[15]) {
+Registro* buscaPorPalavra(Registro *tabela, char palavra[]) {
     Registro *atual = tabela;
 
     while (atual != NULL && strcmp(atual->palavra, palavra) != 0)
@@ -129,7 +129,7 @@ Registro* buscaPalavra(Registro *tabela, char palavra[15]) {
     return atual;
 }
 
-Registro* buscaSimbolo(Registro *tabela, int simbolo) {
+Registro* buscaPorSimbolo(Registro *tabela, int simbolo) {
     Registro *atual = tabela;
 
     while (atual != NULL && atual->simbolo != simbolo)
@@ -138,7 +138,7 @@ Registro* buscaSimbolo(Registro *tabela, int simbolo) {
     return atual;
 }
 
-Registro *separaEmPalavras(char frase[128]) {
+Registro *separaEmPalavras(char frase[]) {
     Registro *tabela = NULL, *aux;
     int i, j, simbolo = 1;
     char palavra[16];
@@ -155,10 +155,10 @@ Registro *separaEmPalavras(char frase[128]) {
                 palavra[j++] = frase[i];
             
             palavra[j] = '\0';
-            aux = buscaPalavra(tabela, palavra);
+            aux = buscaPorPalavra(tabela, palavra);
             if (aux == NULL) {
                 insereRegistro(&tabela, palavra);
-                aux = buscaPalavra(tabela, palavra);
+                aux = buscaPorPalavra(tabela, palavra);
                 aux->simbolo = simbolo++;
             }
             else {
@@ -171,11 +171,11 @@ Registro *separaEmPalavras(char frase[128]) {
 }
 
 void exibeTabela(Registro *tabela) {
-    int y = 2;
-    gotoxy(1, 1); printf("SIMBOLO");
-    gotoxy(14, 1); printf("PALAVRA");
-    gotoxy(27, 1); printf("FREQUENCIA");
-    gotoxy(40, 1); printf("HUFFMAN");
+    int y = 5;
+    gotoxy(1, 4); printf("SIMBOLO");
+    gotoxy(14, 4); printf("PALAVRA");
+    gotoxy(27, 4); printf("FREQUENCIA");
+    gotoxy(40, 4); printf("HUFFMAN");
 
     while (tabela != NULL) {
         gotoxy(4, y); printf("%d", tabela->simbolo);
@@ -186,6 +186,7 @@ void exibeTabela(Registro *tabela) {
 
         tabela = tabela->prox;
     }
+
     printf("\n\n");
 }
 
@@ -229,7 +230,7 @@ void geraCodigosHuffman(Registro **tabela, Tree *tree, char huffman[], int i) {
     if (tree != NULL) {
         if (tree->esq == NULL && tree->dir == NULL) {
             huffman[i] = '\0';
-            aux = buscaSimbolo(*tabela, tree->simbolo);
+            aux = buscaPorSimbolo(*tabela, tree->simbolo);
             strcpy(aux->codigoHuffman, huffman);
         }
         else {
@@ -254,35 +255,35 @@ void gravaTabelaEmBinario(Registro *tabela) {
     fclose(arq);
 }
 
-void codificaFrase(Registro *tabela, char frase[], char codigo[]) {
+void codificaFrase(Registro *tabela, char fraseACodificar[], char fraseCodificada[]) {
     Registro *aux;
     int i, j, mod;
     char palavra[16];
 
-    for (i = 0; i < strlen(frase); i++) {
+    for (i = 0; i < strlen(fraseACodificar); i++) {
         j = 0;
-        if (frase[j] != '\0') {
-            if (frase[i] != ' ') {
-                palavra[j++] = frase[i];
-                while (i < strlen(frase) && frase[i + 1] != ' ')
-                    palavra[j++] = frase[++i];
+        if (fraseACodificar[j] != '\0') {
+            if (fraseACodificar[i] != ' ') {
+                palavra[j++] = fraseACodificar[i];
+                while (i < strlen(fraseACodificar) && fraseACodificar[i + 1] != ' ')
+                    palavra[j++] = fraseACodificar[++i];
             }
             else
-                palavra[j++] = frase[i];
+                palavra[j++] = fraseACodificar[i];
             
             palavra[j] = '\0';
-            aux = buscaPalavra(tabela, palavra);
+            aux = buscaPorPalavra(tabela, palavra);
             if (aux != NULL)
-                strcat(codigo, aux->codigoHuffman);
+                strcat(fraseCodificada, aux->codigoHuffman);
         }
     }
 
-    // Preenchendo o resto do codigo com 0 para completar o byte
-    mod = strlen(codigo) % 8;
+    // Preenchendo o resto da frase codificada com 0 para completar o byte
+    mod = strlen(fraseCodificada) % 8;
     i = 0;
     if (mod > 0) {
         while (i < (8 - mod)) {
-            strcat(codigo, "0");
+            strcat(fraseCodificada, "0");
             i++;
         }
     }
@@ -389,7 +390,7 @@ Registro *recuperaTabelaPeloBinario(void) {
 
 void decodificaFrase(Tree *raiz, char fraseDecodificada[]) {
     int i = 0;
-    char fraseCodificada[128] = "", palavra[16] = "";
+    char fraseCodificada[512] = "", palavra[16] = "";
     Byte byte;
     Tree *atual;
     Registro *tabela, *aux;
@@ -397,7 +398,7 @@ void decodificaFrase(Tree *raiz, char fraseDecodificada[]) {
     FILE *ptr = fopen("tabela.dat", "rb");
 
     if (arq != NULL) {
-        fread(&byte, sizeof(char), 1, arq);
+        fread(&byte.codigo, sizeof(char), 1, arq);
         while (!feof(arq)) {
             fraseCodificada[i] = byte.bit.b0 + '0';
             fraseCodificada[i + 1] = byte.bit.b1 + '0';
@@ -408,7 +409,7 @@ void decodificaFrase(Tree *raiz, char fraseDecodificada[]) {
             fraseCodificada[i + 6] = byte.bit.b6 + '0';
             fraseCodificada[i + 7] = byte.bit.b7 + '0';
             
-            fread(&byte, sizeof(char), 1, arq);
+            fread(&byte.codigo, sizeof(char), 1, arq);
             i = i + 8;
         }
 
@@ -423,7 +424,7 @@ void decodificaFrase(Tree *raiz, char fraseDecodificada[]) {
             
             if (atual->esq == NULL && atual->dir == NULL) {
                 tabela = recuperaTabelaPeloBinario();
-                aux = buscaSimbolo(tabela, atual->simbolo);
+                aux = buscaPorSimbolo(tabela, atual->simbolo);
                 strcat(fraseDecodificada, aux->palavra);
                 
                 atual = raiz;
@@ -432,5 +433,5 @@ void decodificaFrase(Tree *raiz, char fraseDecodificada[]) {
     }
 
     fclose(arq);
-    printf("%s\n", fraseCodificada);
+    printf("Frase codificada recuperada do arquivo binario:\n%s\n", fraseCodificada);
 }
