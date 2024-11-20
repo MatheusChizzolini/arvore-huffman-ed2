@@ -243,7 +243,7 @@ void geraCodigosHuffman(Registro **tabela, Tree *tree, char huffman[], int i) {
 }
 
 void gravaTabelaEmBinario(Registro *tabela) {
-    FILE *arq = fopen("tabela.dat", "wb");
+    FILE *arq = fopen("tabela-registros.dat", "wb");
 
     if (arq != NULL) {
         while (tabela != NULL) {
@@ -289,20 +289,20 @@ void codificaFrase(Registro *tabela, char fraseACodificar[], char fraseCodificad
     }
 }
 
-void gravaFraseCodificadaEmBinario(char codigo[]) {
+void gravaFraseCodificadaEmBinario(char fraseCodificada[]) {
     int i = 0;
     Byte byte;
-    FILE *arq = fopen("codigo.dat", "wb");
+    FILE *arq = fopen("frase-codificada.dat", "wb");
 
-    while (i < strlen(codigo)) {
-        byte.bit.b0 = codigo[i];
-        byte.bit.b1 = codigo[i + 1];
-        byte.bit.b2 = codigo[i + 2];
-        byte.bit.b3 = codigo[i + 3];
-        byte.bit.b4 = codigo[i + 4];
-        byte.bit.b5 = codigo[i + 5];
-        byte.bit.b6 = codigo[i + 6];
-        byte.bit.b7 = codigo[i + 7];
+    while (i < strlen(fraseCodificada)) {
+        byte.bit.b0 = fraseCodificada[i];
+        byte.bit.b1 = fraseCodificada[i + 1];
+        byte.bit.b2 = fraseCodificada[i + 2];
+        byte.bit.b3 = fraseCodificada[i + 3];
+        byte.bit.b4 = fraseCodificada[i + 4];
+        byte.bit.b5 = fraseCodificada[i + 5];
+        byte.bit.b6 = fraseCodificada[i + 6];
+        byte.bit.b7 = fraseCodificada[i + 7];
 
         i += 8;
         fwrite(&byte.codigo, sizeof(char), 1, arq);
@@ -315,7 +315,7 @@ void recuperaArvorePeloBinario(Tree **raiz) {
     int i;
     Tree *atual, *nodo;
     Registro *registro;
-    FILE *arq = fopen("tabela.dat", "rb");
+    FILE *arq = fopen("tabela-registros.dat", "rb");
 
     if (arq != NULL) {
         if (*raiz == NULL)
@@ -359,7 +359,7 @@ void recuperaArvorePeloBinario(Tree **raiz) {
 
 Registro *recuperaTabelaPeloBinario(void) {
     Registro registro, *novoRegistro, *tabela = NULL, *aux;
-    FILE *ptr = fopen("tabela.dat", "rb");
+    FILE *ptr = fopen("tabela-registros.dat", "rb");
 
     if (ptr != NULL) {
         fread(&registro, sizeof(Registro), 1, ptr);
@@ -390,12 +390,11 @@ Registro *recuperaTabelaPeloBinario(void) {
 
 void decodificaFrase(Tree *raiz, char fraseDecodificada[]) {
     int i = 0;
-    char fraseCodificada[512] = "", palavra[16] = "";
+    char fraseCodificada[512] = "";
     Byte byte;
     Tree *atual;
     Registro *tabela, *aux;
-    FILE *arq = fopen("codigo.dat", "rb");
-    FILE *ptr = fopen("tabela.dat", "rb");
+    FILE *arq = fopen("frase-codificada.dat", "rb");
 
     if (arq != NULL) {
         fread(&byte.codigo, sizeof(char), 1, arq);
