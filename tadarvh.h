@@ -215,12 +215,12 @@ void exibeArvoreDeHuffman(Tree *raiz, int n) {
     int i;
 
     if (raiz != NULL) {
-        exibeArvoreDeHuffman(raiz->esq, n + 1);
+        exibeArvoreDeHuffman(raiz->dir, n + 1);
         for (i = 0; i < 5 * n; i++)
             printf(" ");
         
         printf("(%d, %d)\n", raiz->simbolo, raiz->freq);
-        exibeArvoreDeHuffman(raiz->dir, n + 1);
+        exibeArvoreDeHuffman(raiz->esq, n + 1);
     }
 }
 
@@ -314,18 +314,18 @@ void gravaFraseCodificadaEmBinario(char fraseCodificada[]) {
 void recuperaArvorePeloBinario(Tree **raiz) {
     int i;
     Tree *atual, *nodo;
-    Registro *registro;
+    Registro registro;
     FILE *arq = fopen("tabela-registros.dat", "rb");
 
     if (arq != NULL) {
         if (*raiz == NULL)
             *raiz = criaFolha(-1, -1);
 
-        fread(registro, sizeof(Registro), 1, arq);
+        fread(&registro, sizeof(Registro), 1, arq);
         while (!feof(arq)) {
             atual = *raiz;
-            for (i = 0; i < strlen(registro->codigoHuffman); i++) {
-                if (registro->codigoHuffman[i] == '0') {
+            for (i = 0; i < strlen(registro.codigoHuffman); i++) {
+                if (registro.codigoHuffman[i] == '0') {
                     if (atual->esq == NULL) {
                         nodo = criaFolha(-1, -1);
                         atual->esq = nodo;
@@ -334,7 +334,7 @@ void recuperaArvorePeloBinario(Tree **raiz) {
                     atual = atual->esq;
                 }
                 else {
-                    if (registro->codigoHuffman[i] == '1') {
+                    if (registro.codigoHuffman[i] == '1') {
                         if (atual->dir == NULL) {
                             nodo = criaFolha(-1, -1);
                             atual->dir = nodo;
@@ -344,13 +344,13 @@ void recuperaArvorePeloBinario(Tree **raiz) {
                     }
                 }
 
-                if (i == strlen(registro->codigoHuffman) - 1) {
-                    atual->simbolo = registro->simbolo;
-                    atual->freq = registro->freq;
+                if (i == strlen(registro.codigoHuffman) - 1) {
+                    atual->simbolo = registro.simbolo;
+                    atual->freq = registro.freq;
                 }
             }
             
-            fread(registro, sizeof(Registro), 1, arq);
+            fread(&registro, sizeof(Registro), 1, arq);
         }
     }
 
